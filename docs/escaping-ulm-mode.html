@@ -1,0 +1,544 @@
+<title>Escaping ULM Mode</title>
+<style>
+  :root {
+    --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#E4E9F0; --surface-3:#DAE1EA;
+    --ink:#10151C; --ink-2:#4A5462; --ink-3:#6B7686;
+    --rule:#CBD3DE; --rule-strong:#AEB9C8;
+    --accent:#24478F; --accent-soft:#DCE4F5; --accent-ink:#1B366F;
+    --warn:#A85B06; --warn-soft:#F8EAD3; --warn-rule:#E0BC84;
+    --ok:#1B6B48; --ok-soft:#D8EBE1; --ok-rule:#96C7AC;
+    --danger:#A32A22; --danger-soft:#F7DEDB; --danger-rule:#E0A49E;
+    --console-bg:#141A22; --console-ink:#D8E0EA; --console-dim:#7C8899; --console-accent:#8FB0F0;
+    --font-display:"Cascadia Mono","Cascadia Code",Consolas,"SF Mono",ui-monospace,monospace;
+    --font-body:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,21,28,.06), 0 8px 24px -12px rgba(16,21,28,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0D1117; --surface:#151C26; --surface-2:#1C2531; --surface-3:#232E3D;
+      --ink:#E6EBF2; --ink-2:#9AA6B6; --ink-3:#7A8697;
+      --rule:#2A3441; --rule-strong:#3A4757;
+      --accent:#8FB0F0; --accent-soft:#1A2640; --accent-ink:#B6CBF6;
+      --warn:#E0A44E; --warn-soft:#2E2411; --warn-rule:#5A4720;
+      --ok:#63C398; --ok-soft:#122A1E; --ok-rule:#28553C;
+      --danger:#E8776C; --danger-soft:#2E1614; --danger-rule:#5C2E29;
+      --console-bg:#080C11; --console-ink:#D8E0EA; --console-dim:#6C7889; --console-accent:#8FB0F0;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0D1117; --surface:#151C26; --surface-2:#1C2531; --surface-3:#232E3D;
+    --ink:#E6EBF2; --ink-2:#9AA6B6; --ink-3:#7A8697;
+    --rule:#2A3441; --rule-strong:#3A4757;
+    --accent:#8FB0F0; --accent-soft:#1A2640; --accent-ink:#B6CBF6;
+    --warn:#E0A44E; --warn-soft:#2E2411; --warn-rule:#5A4720;
+    --ok:#63C398; --ok-soft:#122A1E; --ok-rule:#28553C;
+    --danger:#E8776C; --danger-soft:#2E1614; --danger-rule:#5C2E29;
+    --console-bg:#080C11; --console-ink:#D8E0EA; --console-dim:#6C7889; --console-accent:#8FB0F0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:820px; margin:0 auto; padding:48px 24px 96px; display:flex; flex-direction:column; gap:44px; }
+
+  /* ---- header ---- */
+  header { display:flex; flex-direction:column; gap:14px; }
+  .eyebrow {
+    font-family:var(--font-display); font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent); font-weight:600;
+  }
+  h1 {
+    font-family:var(--font-display); font-size:clamp(30px,6vw,46px); line-height:1.05;
+    font-weight:700; letter-spacing:-.01em; text-wrap:balance; margin:0;
+  }
+  .standfirst { font-size:18px; color:var(--ink-2); max-width:62ch; text-wrap:pretty; }
+  .meta {
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;
+  }
+  .tag {
+    font-family:var(--font-display); font-size:11.5px; letter-spacing:.04em;
+    background:var(--surface-2); color:var(--ink-2);
+    border:1px solid var(--rule); border-radius:3px; padding:4px 9px;
+  }
+  .tag b { color:var(--ink); font-weight:600; }
+
+  /* ---- sections ---- */
+  section { display:flex; flex-direction:column; gap:18px; }
+  h2 {
+    font-family:var(--font-display); font-size:13px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink);
+    margin:0; padding-bottom:10px; border-bottom:2px solid var(--rule-strong);
+    display:flex; align-items:baseline; gap:12px;
+  }
+  h2 .num { color:var(--accent); font-variant-numeric:tabular-nums; }
+  h3 {
+    font-family:var(--font-display); font-size:15px; font-weight:700;
+    letter-spacing:-.005em; margin:0; color:var(--ink);
+  }
+  p { margin:0; max-width:68ch; text-wrap:pretty; }
+  ul, ol { margin:0; padding-left:22px; display:flex; flex-direction:column; gap:8px; max-width:68ch; }
+  li::marker { color:var(--ink-3); }
+  strong { font-weight:650; }
+  code {
+    font-family:var(--font-display); font-size:.88em;
+    background:var(--surface-2); border:1px solid var(--rule);
+    border-radius:3px; padding:1px 5px; color:var(--ink);
+    overflow-wrap:break-word;
+  }
+
+  /* ---- causal chain ---- */
+  .chain { display:flex; flex-direction:column; gap:0; margin:2px 0; }
+  .link {
+    display:grid; grid-template-columns:26px 1fr; gap:14px; align-items:start;
+  }
+  .link .dot {
+    display:flex; flex-direction:column; align-items:center; height:100%;
+  }
+  .link .dot i {
+    width:9px; height:9px; border-radius:50%; background:var(--accent);
+    margin-top:8px; flex:none;
+  }
+  .link .dot span { width:2px; flex:1; background:var(--rule-strong); min-height:14px; }
+  .link:last-child .dot span { display:none; }
+  .link .body { padding-bottom:16px; }
+  .link h4 {
+    margin:0 0 2px; font-family:var(--font-display); font-size:13.5px; font-weight:700;
+    letter-spacing:.02em;
+  }
+  .link p { font-size:14.5px; color:var(--ink-2); }
+  .link.terminal .dot i { background:var(--danger); }
+
+  /* ---- callouts ---- */
+  .callout {
+    border:1px solid var(--rule); border-left:4px solid var(--accent);
+    background:var(--surface); border-radius:4px; padding:16px 18px;
+    display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow);
+  }
+  .callout .label {
+    font-family:var(--font-display); font-size:11px; letter-spacing:.16em;
+    text-transform:uppercase; font-weight:700; color:var(--accent);
+  }
+  .callout p, .callout ul { font-size:15px; }
+  .callout.warn { border-left-color:var(--warn); background:var(--warn-soft); border-color:var(--warn-rule); }
+  .callout.warn .label { color:var(--warn); }
+  .callout.stop { border-left-color:var(--danger); background:var(--danger-soft); border-color:var(--danger-rule); }
+  .callout.stop .label { color:var(--danger); }
+  .callout.ok { border-left-color:var(--ok); background:var(--ok-soft); border-color:var(--ok-rule); }
+  .callout.ok .label { color:var(--ok); }
+
+  /* ---- console blocks ---- */
+  .console {
+    background:var(--console-bg); border-radius:5px; border:1px solid var(--rule);
+    overflow:hidden; box-shadow:var(--shadow);
+  }
+  .console .bar {
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:7px 12px; border-bottom:1px solid rgba(255,255,255,.08);
+    font-family:var(--font-display); font-size:10.5px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--console-dim);
+  }
+  .console .bar .right { color:var(--console-accent); letter-spacing:.1em; }
+  .console pre {
+    margin:0; padding:14px 16px; overflow-x:auto;
+    font-family:var(--font-display); font-size:13px; line-height:1.65;
+    color:var(--console-ink); tab-size:2;
+  }
+  .console pre .c { color:var(--console-dim); }
+  .console pre .k { color:var(--console-accent); }
+
+  /* ---- tables ---- */
+  .tablewrap { overflow-x:auto; border:1px solid var(--rule); border-radius:4px; background:var(--surface); }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; min-width:560px; }
+  th, td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th {
+    font-family:var(--font-display); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-2); background:var(--surface-2); font-weight:700;
+  }
+  tr:last-child td { border-bottom:none; }
+  td code { font-size:12.5px; }
+  .val { font-family:var(--font-display); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .pill {
+    display:inline-block; font-family:var(--font-display); font-size:11px; font-weight:700;
+    letter-spacing:.06em; padding:2px 7px; border-radius:3px; white-space:nowrap;
+  }
+  .pill.bad { background:var(--danger-soft); color:var(--danger); border:1px solid var(--danger-rule); }
+  .pill.good { background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok-rule); }
+  .pill.neutral { background:var(--surface-3); color:var(--ink-2); border:1px solid var(--rule); }
+
+  /* ---- phase steps ---- */
+  .phase {
+    display:grid; grid-template-columns:auto 1fr; gap:0 18px;
+    border-left:2px solid var(--rule); padding-left:0; margin-left:9px;
+  }
+  .phase > .marker {
+    grid-column:1; width:20px; margin-left:-11px;
+    display:flex; justify-content:center;
+  }
+  .phase > .marker b {
+    font-family:var(--font-display); font-size:11px; font-weight:700;
+    background:var(--bg); color:var(--accent); padding:2px 0; line-height:1.2;
+    font-variant-numeric:tabular-nums;
+  }
+  .phase > .content { grid-column:2; display:flex; flex-direction:column; gap:14px; padding-bottom:32px; }
+  .phase:last-of-type { border-left-color:transparent; }
+
+  footer {
+    border-top:1px solid var(--rule); padding-top:20px;
+    font-size:13.5px; color:var(--ink-3); display:flex; flex-direction:column; gap:6px;
+  }
+  a { color:var(--accent); }
+  a:focus-visible, .console:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  @media (max-width:560px) {
+    .wrap { padding:32px 16px 64px; gap:36px; }
+    .console pre { font-size:12px; }
+  }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Runbook &middot; Windows host prep</div>
+  <h1>Escaping ULM Mode</h1>
+  <p class="standfirst">Getting VMware Workstation out of user-level monitor mode so nested virtualization actually works — and finding which invisible Windows feature is holding the hypervisor hostage.</p>
+  <div class="meta">
+    <span class="tag">Verified <b>2026-08-16</b></span>
+    <span class="tag">Updated <b>2026-10-06</b></span>
+    <span class="tag">Workstation <b>25.0.0</b></span>
+    <span class="tag">Host <b>Win 11 Pro 26200</b></span>
+    <span class="tag">Reference box <b>Ryzen 7 5800X</b></span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">01</span> Root cause</h2>
+  <p>The symptom is a dialog with no diagnostic value: <strong>"Failed to start the virtual machine"</strong>, appearing only once <em>Virtualize Intel VT-x/EPT or AMD-V/RVI</em> is ticked. The real chain is five links long, and only the last one is visible.</p>
+
+  <div class="chain">
+    <div class="link">
+      <div class="dot"><i></i><span></span></div>
+      <div class="body">
+        <h4>A VBS consumer is enabled in Windows</h4>
+        <p>Something asks for Virtualization-Based Security. On the reference machine this was <strong>Windows Hello Enhanced Sign-in Security (ESS)</strong> — not Hyper-V, not Memory Integrity.</p>
+      </div>
+    </div>
+    <div class="link">
+      <div class="dot"><i></i><span></span></div>
+      <div class="body">
+        <h4>Windows loads its own hypervisor at boot</h4>
+        <p><code>hvax64.exe</code> on AMD, <code>hvix64.exe</code> on Intel. Both ship with the OS whether or not the Hyper-V role is installed, so no feature needs to be enabled for this to happen.</p>
+      </div>
+    </div>
+    <div class="link">
+      <div class="dot"><i></i><span></span></div>
+      <div class="body">
+        <h4>The hypervisor claims the CPU's virtualization extensions</h4>
+        <p>It now owns AMD-V/RVI or VT-x/EPT exclusively. Windows starts reporting <code>HypervisorPresent: True</code>, and — the useful tell — <code>VMMonitorModeExtensions</code> and <code>SecondLevelAddressTranslationExtensions</code> both flip to <span class="pill bad">False</span>, because they are masked from the OS.</p>
+      </div>
+    </div>
+    <div class="link">
+      <div class="dot"><i></i><span></span></div>
+      <div class="body">
+        <h4>Workstation demotes itself to ULM</h4>
+        <p>Rather than fail, it runs as a <strong>user-level monitor</strong> on the Windows Hypervisor Platform instead of using its own ring-0 monitor (<code>vmx86</code>). Ordinary VMs still boot fine, which is exactly why this hides so well.</p>
+      </div>
+    </div>
+    <div class="link terminal">
+      <div class="dot"><i></i></div>
+      <div class="body">
+        <h4>Nested virtualization is unavailable in ULM</h4>
+        <p>A user-level monitor cannot pass the virtualization extensions down to a guest. Setting <code>vhv.enable</code> makes power-on fail — with that generic dialog and nothing useful in the UI.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="label">The one line that proves it</div>
+    <p>Every VM writes its monitor mode to its own <code>vmware.log</code>, in the VM's folder. This is the fastest confirmation, before and after:</p>
+    <div class="console"><div class="bar"><span>vmware.log</span><span class="right">before fix</span></div><pre>2026-08-15T21:08:49.317Z  vmware-vmx.exe  <span class="k">Monitor Mode: ULM</span></pre></div>
+  </div>
+
+  <div class="callout warn">
+    <div class="label">Why the usual advice fails here</div>
+    <p>Every guide online says to disable Hyper-V and turn off Memory Integrity. On the reference machine <strong>all of that was already off</strong> — every Hyper-V optional feature Disabled, HVCI <code>0</code>, Credential Guard <code>0</code>, <code>hvhost</code> stopped and disabled — and the hypervisor still ran. ESS is VBS-backed but appears in <em>neither</em> the Hyper-V feature list <em>nor</em> the Core Isolation UI. It is only visible in the registry.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02</span> Before you touch the other laptop</h2>
+  <div class="callout stop">
+    <div class="label">Do not blind-copy the two commands</div>
+    <p>The fix that worked on the desktop was aimed at a cause that machine happened to have. A laptop is a materially different environment, and three things commonly differ:</p>
+    <ul>
+      <li><strong>BitLocker is usually ON.</strong> Windows 11 laptops enable device encryption by default; the desktop did not have it. Editing the BCD on an encrypted machine can trigger a recovery-key prompt at next boot. Get the key <em>first</em>.</li>
+      <li><strong>Disabling ESS destroys the Windows Hello enrolment — PIN included.</strong> Hello&rsquo;s credentials sit in a VBS-sealed container; remove VBS and the whole container becomes unreadable, so PIN, face and fingerprint all go &ldquo;currently unavailable&rdquo; at once and <code>dsregcmd /status</code> reports <code>NgcSet : NO</code>. You are not locked out — the account password still works — but you must re-enrol the PIN afterwards. Know the password before you start.</li>
+      <li><strong>WSL2, Docker Desktop or a QEMU-backed app may be installed.</strong> If so, do not disable the hypervisor globally — use the dual-boot entry in step 06 instead.</li>
+    </ul>
+    <p>Run the diagnosis in step 03 and let the results pick the fix.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">03</span> Diagnose</h2>
+
+  <div class="phase">
+    <div class="marker"><b>A</b></div>
+    <div class="content">
+      <h3>Secure the recovery key</h3>
+      <p>In an <strong>elevated</strong> PowerShell. If protection status is On, retrieve the recovery key from <code>account.microsoft.com/devices/recoverykey</code> and have it on your phone before continuing.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">read-only</span></div><pre>manage-bde -status</pre></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>B</b></div>
+    <div class="content">
+      <h3>Read the full hypervisor picture</h3>
+      <p>This is read-only and needs no elevation. It reports every mechanism that can load the hypervisor, in one pass.</p>
+      <div class="console"><div class="bar"><span>PowerShell</span><span class="right">read-only</span></div><pre><span class="c"># 1 — is a hypervisor running, and are the CPU extensions masked?</span>
+Get-CimInstance Win32_ComputerSystem | Select-Object HypervisorPresent
+Get-CimInstance Win32_Processor | Select-Object Name, VMMonitorModeExtensions,
+    SecondLevelAddressTranslationExtensions, VirtualizationFirmwareEnabled
+
+<span class="c"># 2 — VBS running state</span>
+Get-CimInstance -Namespace root\Microsoft\Windows\DeviceGuard `
+    -ClassName Win32_DeviceGuard |
+  Select-Object VirtualizationBasedSecurityStatus,
+    @{n='Running';e={$_.SecurityServicesRunning -join ','}}
+
+<span class="c"># 3 — EVERY VBS scenario, not just Memory Integrity. This is the one</span>
+<span class="c">#     that other guides omit, and where ESS shows up.</span>
+Get-ChildItem 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios' |
+  ForEach-Object {
+    "--- $($_.PSChildName)"
+    (Get-ItemProperty $_.PSPath |
+      Select-Object * -Exclude PS* | Format-List | Out-String).Trim()
+  }
+
+<span class="c"># 4 — Hyper-V features, via WMI (see gotcha below)</span>
+Get-CimInstance Win32_OptionalFeature |
+  Where-Object { $_.Name -match 'Hyper-V|VirtualMachinePlatform|HypervisorPlatform|DisposableClientVM' } |
+  Select-Object Name, @{n='State';e={switch($_.InstallState){1{'Enabled'}2{'Disabled'}3{'Absent'}}}}</pre></div>
+      <div class="callout warn">
+        <div class="label">Gotcha — Class not registered</div>
+        <p><code>Get-WindowsOptionalFeature -Online</code> fails with <code>Class not registered</code> under PowerShell 7, because the DISM module's COM interface doesn't load there. Use the <code>Win32_OptionalFeature</code> query above instead, or run that one cmdlet inside Windows PowerShell 5.1. It is not a sign of a broken machine.</p>
+      </div>
+      <div class="callout">
+        <div class="label">Name the culprit, don't guess it</div>
+        <p>If a feature came back enabled and you don't know what did it, the DISM log records the exact command line and timestamp. This is how Try Omarchy was caught in one grep:</p>
+        <div class="console"><div class="bar"><span>PowerShell</span><span class="right">read-only</span></div><pre>Select-String -Path 'C:\Windows\Logs\DISM\dism.log' `
+  -Pattern 'enable-feature' | Select-Object -Last 10</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>C</b></div>
+    <div class="content">
+      <h3>Confirm the BCD setting</h3>
+      <p>Elevated — <code>bcdedit</code> silently produces nothing without it, which reads as an empty result rather than an error.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">read-only</span></div><pre>bcdedit /enum "{current}" | findstr /i hypervisorlaunchtype</pre></div>
+      <p>Enabling a hypervisor feature resets this to <code>Auto</code>, silently overriding an earlier <code>off</code>. Always re-read it after any app has touched the feature list.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">04</span> Pick the fix from what you found</h2>
+  <p>Work down this table and stop at the first row that matches. More than one can be true; fix them in order and re-check.</p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Finding</th><th>Meaning</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="val">HypervisorPresent<br><span class="pill good">False</span></td>
+          <td>No hypervisor. This is not your problem.</td>
+          <td>Check firmware instead — <code>VirtualizationFirmwareEnabled</code> must be True, else enable SVM (AMD) or VT-x (Intel) in BIOS.</td>
+        </tr>
+        <tr>
+          <td class="val">HypervisorPlatform<br><span class="pill bad">Enabled</span><br>and nothing else</td>
+          <td><strong>A QEMU-backed app turned WHP on for itself.</strong> Try Omarchy, QEMU, VirtualBox 7 and the Android Studio emulator all use the Windows Hypervisor Platform as their acceleration path, and their installers enable it silently. Try Omarchy 0.9.0 runs <code>dism /online /enable-feature /featurename:HypervisorPlatform /all /norestart /quiet</code> and drops a <code>whp-requested</code> receipt in its install folder.</td>
+          <td><strong>Use step 06, not 05a.</strong> The app re-enables WHP the next time it launches and finds it gone, so disabling the feature starts a fight you lose on every reboot. A dedicated boot entry keeps both working.</td>
+        </tr>
+        <tr>
+          <td class="val">Any other Hyper-V<br>feature <span class="pill bad">Enabled</span></td>
+          <td>Hyper-V, WSL2 or Sandbox is installed and owns the CPU.</td>
+          <td>Disable the features (step 05a), <em>then</em> apply 05c.</td>
+        </tr>
+        <tr>
+          <td class="val">HypervisorEnforced&#8203;CodeIntegrity = 1</td>
+          <td>Memory Integrity is on.</td>
+          <td>Windows Security → Device security → Core isolation → off. Reboot, re-check.</td>
+        </tr>
+        <tr>
+          <td class="val">WindowsHello = 1<br>all other scenarios 0</td>
+          <td><strong>The reference-machine case.</strong> ESS alone is holding the hypervisor up.</td>
+          <td>Apply 05b + 05c together.</td>
+        </tr>
+        <tr>
+          <td class="val">All scenarios 0,<br>no features enabled</td>
+          <td>The BCD is launching the hypervisor on its own.</td>
+          <td>05c alone is enough.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">05</span> Apply</h2>
+  <p>All elevated. Do not reboot until you have run every step that applies.</p>
+
+  <div class="phase">
+    <div class="marker"><b>a</b></div>
+    <div class="content">
+      <h3>Suspend BitLocker, then remove Hyper-V features</h3>
+      <p>Skip the feature block entirely if step 03 showed everything already Disabled — it was a no-op on the reference machine.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies system</span></div><pre>Suspend-BitLocker -MountPoint "C:" -RebootCount 1
+
+'Microsoft-Hyper-V-All','HypervisorPlatform','VirtualMachinePlatform',
+'Containers-DisposableClientVM','Windows-Defender-ApplicationGuard' | ForEach-Object {
+  try   { Disable-WindowsOptionalFeature -Online -FeatureName $_ -NoRestart -ErrorAction Stop | Out-Null
+          "disabled: $_" }
+  catch { "skipped:  $_" }
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>b</b></div>
+    <div class="content">
+      <h3>Turn off the ESS scenario</h3>
+      <p>Only if step 03 showed <code>WindowsHello\Enabled = 1</code>. This is the step no other guide includes.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies registry</span></div><pre>Set-ItemProperty `
+  -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello' `
+  -Name Enabled -Type DWord -Value 0</pre></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>c</b></div>
+    <div class="content">
+      <h3>Stop the hypervisor from launching, then reboot</h3>
+      <p>This is the load-bearing command. It prevents the hypervisor from starting regardless of which consumer asked for it.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies boot config</span></div><pre>bcdedit /set hypervisorlaunchtype off
+bcdedit /set vsmlaunchtype Off
+
+Restart-Computer</pre></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>d</b></div>
+    <div class="content">
+      <h3>Re-enrol Windows Hello after the reboot</h3>
+      <p>Expect this: every Hello option reads <em>&ldquo;This option is currently unavailable&rdquo;</em> and <code>dsregcmd /status</code> shows <code>NgcSet : NO</code>. The old container was sealed to VBS and cannot be opened now that VBS is gone. Sign in with your account password, then clear the stale container so Windows can build a fresh one.</p>
+      <div class="callout stop">
+        <div class="label">Before you run this</div>
+        <p>Confirm you know the account password &mdash; it is the only credential that still works. On a Microsoft account, verify it at <code>account.microsoft.com</code> from your phone <em>first</em>. Clearing the container removes Hello enrolments for every user on the machine.</p>
+      </div>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">deletes credentials</span></div><pre><span class="c"># take ownership of the Hello container, then empty it</span>
+$ngc = "$env:WinDir\ServiceProfiles\LocalService\AppData\Local\Microsoft\Ngc"
+takeown /f $ngc /r /d y
+icacls $ngc /grant "$($env:USERNAME):F" /t
+Remove-Item "$ngc\*" -Recurse -Force
+
+<span class="c"># hand ownership back so Windows can manage it again</span>
+icacls $ngc /t /q /c /reset
+
+Restart-Computer</pre></div>
+      <p>After the reboot: <strong>Settings &rarr; Accounts &rarr; Sign-in options &rarr; PIN (Windows Hello) &rarr; Set up</strong>. The new PIN is enrolled without ESS, so it survives the hypervisor staying off. Re-enrol face and fingerprint from the same page if the machine has them. Confirm with <code>dsregcmd /status</code> &mdash; <code>NgcSet</code> should read <code>YES</code>.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">06</span> When something else genuinely needs the hypervisor</h2>
+  <p>Disabling the hypervisor globally breaks WSL2, Docker Desktop's WSL2 and Hyper-V backends, Windows Sandbox, and any QEMU-backed app that accelerates through WHP. If the machine uses any of them, add a second boot entry instead of flipping the setting back and forth.</p>
+  <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies boot config</span></div><pre><span class="c"># copy the current entry; this prints a GUID</span>
+bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"
+
+<span class="c"># apply the setting to THAT entry only, using the GUID printed above</span>
+bcdedit /set "{PASTE-GUID-HERE}" hypervisorlaunchtype off</pre></div>
+  <p>You then pick <em>Windows 11 (No Hyper-V)</em> at boot for nested virtualization work, and the normal entry for containers and QEMU guests.</p>
+  <div class="callout warn">
+    <div class="label">Why this beats toggling the feature</div>
+    <p>An app that enabled WHP for itself will simply enable it again the next time it starts and finds it missing — it never asks. Removing the feature therefore buys one reboot, not a fixed machine. Leaving the feature installed and controlling the <em>boot entry</em> takes the decision back without the app noticing anything is wrong.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">07</span> Verify</h2>
+  <p>After the reboot, all four of these must agree. Two of the four inverting is the signal that the extensions were released.</p>
+  <div class="console"><div class="bar"><span>PowerShell</span><span class="right">read-only</span></div><pre>Get-CimInstance Win32_ComputerSystem | Select-Object HypervisorPresent
+Get-CimInstance Win32_Processor |
+  Select-Object VMMonitorModeExtensions, SecondLevelAddressTranslationExtensions
+Get-CimInstance -Namespace root\Microsoft\Windows\DeviceGuard `
+  -ClassName Win32_DeviceGuard | Select-Object VirtualizationBasedSecurityStatus</pre></div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Signal</th><th>Broken</th><th>Fixed</th></tr></thead>
+      <tbody>
+        <tr><td><code>HypervisorPresent</code></td><td><span class="pill bad">True</span></td><td><span class="pill good">False</span></td></tr>
+        <tr><td><code>VMMonitorModeExtensions</code></td><td><span class="pill bad">False</span></td><td><span class="pill good">True</span></td></tr>
+        <tr><td><code>SecondLevelAddressTranslationExtensions</code></td><td><span class="pill bad">False</span></td><td><span class="pill good">True</span></td></tr>
+        <tr><td><code>VirtualizationBasedSecurityStatus</code></td><td><span class="pill bad">2</span> running</td><td><span class="pill good">0</span> not enabled</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout ok">
+    <div class="label">Expected leftovers — not a failure</div>
+    <p>The <code>hvservice</code> and <code>Vid</code> drivers may still show as Running after the fix. They load regardless and have no hypervisor to attach to. The CPUID and VBS results above are authoritative; ignore the driver states.</p>
+  </div>
+
+  <div class="phase" style="margin-top:6px;">
+    <div class="marker"><b>&rarr;</b></div>
+    <div class="content">
+      <h3>Then prove it end to end</h3>
+      <p>Power the VM <strong>fully off</strong> — not suspended; nested virtualization cannot be toggled from a suspended state. In VM settings → Processors, tick <em>Virtualize Intel VT-x/EPT</em> or <em>AMD-V/RVI</em> to match the host CPU. That writes <code>vhv.enable = "TRUE"</code> into the <code>.vmx</code>. Start the VM, then read the log back:</p>
+      <div class="console"><div class="bar"><span>PowerShell</span><span class="right">read-only</span></div><pre>Select-String -Path 'F:\VMs\*\vmware.log' -Pattern 'Monitor Mode' |
+  Select-Object -Last 3</pre></div>
+      <div class="callout warn">
+        <div class="label">Check the timestamp before you trust the line</div>
+        <p>A log only records the mode from the run that produced it. After a reboot, every existing log still says <code>ULM</code> until you actually start a VM again — which looks exactly like a failed fix. Compare the log's write time against <code>(Get-CimInstance Win32_OperatingSystem).LastBootUpTime</code>; anything older is stale. You want <code>Monitor Mode: CPL0</code> from a run <em>after</em> the reboot.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">08</span> Rollback</h2>
+  <p>Fully reversible, and worth knowing before you start. Elevated, then reboot:</p>
+  <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">restores defaults</span></div><pre>bcdedit /set hypervisorlaunchtype auto
+
+Set-ItemProperty `
+  -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\WindowsHello' `
+  -Name Enabled -Type DWord -Value 1</pre></div>
+  <p>Re-enable any optional features from step 05a through <em>Turn Windows features on or off</em>, and Memory Integrity through Windows Security.</p>
+</section>
+
+<section>
+  <h2><span class="num">09</span> What it costs, and what to watch</h2>
+  <ul>
+    <li><strong>The entire Windows Hello enrolment, PIN included.</strong> Not just biometrics — the PIN goes too, because all three share one VBS-sealed container. Recovery is step 05d: clear the container and enrol a new PIN, which then works without ESS. Only the account password survives the change untouched, so have it to hand.</li>
+    <li><strong>WSL2, Docker Desktop, Windows Sandbox, Hyper-V VMs, QEMU-backed apps.</strong> All unavailable while the hypervisor is off — unless you use the dual-boot entry in step 06.</li>
+    <li><strong>Feature updates can undo this.</strong> A major Windows update may re-enable ESS. If nested virtualization breaks again months from now, re-check <code>WindowsHello\Enabled</code> before re-investigating from scratch. It is a one-line fix, not a fresh diagnosis.</li>
+    <li><strong>So can any app you install.</strong> Anything that wants WHP will enable it without asking and reset <code>hypervisorlaunchtype</code> to <code>Auto</code> as a side effect. Re-run step 03 after installing a new virtualization or emulator tool rather than assuming the host is still as you left it.</li>
+    <li><strong>Credential Guard and Memory Integrity stay off</strong> as a consequence. On a lab machine that is an accepted trade; on a machine holding domain credentials, weigh it deliberately.</li>
+  </ul>
+</section>
+
+<footer>
+  <div>Written from the 2026-08-16 fix on the Ryzen 7 5800X desktop, where Windows Hello ESS was the sole VBS consumer and the two-command fix in 05b + 05c resolved it. Updated 2026-10-06 after Try Omarchy 0.9.0 re-enabled the hypervisor through the Windows Hypervisor Platform.</div>
+  <div>Diagnose before applying — the commands are the same, but the cause may not be.</div>
+</footer>
+
+</div>
