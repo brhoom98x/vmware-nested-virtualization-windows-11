@@ -126,7 +126,8 @@ if ($BootEntry) {
     Step 'Creating a separate boot entry'
 
     if ($PSCmdlet.ShouldProcess('{current}', 'Copy boot entry as "Windows 11 (No Hyper-V)"')) {
-        $output = bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"
+        # -join makes this a single string; -match on an ARRAY does not populate $Matches
+        $output = (bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)") -join "`n"
         Write-Host "    $output" -ForegroundColor DarkGray
 
         if ($output -match '\{[0-9a-fA-F-]{36}\}') {
