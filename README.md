@@ -2,9 +2,11 @@
 
 **Why VMware Workstation's nested virtualization silently fails on Windows 11 — and how to find the invisible feature holding the hypervisor hostage.**
 
-You tick *Virtualize Intel VT-x/EPT* or *AMD-V/RVI*, the VM refuses to start, and Windows gives you this and nothing else:
+You tick *Virtualize Intel VT-x/EPT* or *AMD-V/RVI*, the VM refuses to start, and Workstation gives you this and nothing else:
 
-> Failed to start the virtual machine.
+![VMware Workstation dialog reading "Failed to start the virtual machine."](docs/images/failed-to-start-dialog.png)
+
+No error code. No log reference. No hint that the problem is the host rather than the VM.
 
 Every guide online tells you to disable Hyper-V and turn off Memory Integrity. This repo is for the case where **you already did all of that and the hypervisor is still running.**
 
