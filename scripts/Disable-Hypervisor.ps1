@@ -133,8 +133,20 @@ if ($BootEntry) {
         if ($output -match '\{[0-9a-fA-F-]{36}\}') {
             $guid = $Matches[0]
             bcdedit /set $guid hypervisorlaunchtype off | Out-Null
+
+            # /copy does not reliably place the entry in the boot menu -- without this
+            # the entry exists but is never offered at startup. /addlast is idempotent.
+            bcdedit /displayorder $guid /addlast | Out-Null
+
             Ok "Entry created: $guid  (hypervisor off)"
+            Ok 'Added to the boot menu. The ORIGINAL entry stays the default.'
             Ok 'Pick it at boot for nested virtualization; the normal entry keeps the hypervisor.'
+
+            $timeout = (bcdedit /enum "{bootmgr}" | Select-String 'timeout')
+            if (-not $timeout) {
+                Write-Host '    No boot menu timeout set. To get a visible menu:' -ForegroundColor DarkGray
+                Write-Host '      bcdedit /timeout 10' -ForegroundColor DarkGray
+            }
         } else {
             Warn 'Could not parse the new GUID. Set it manually:'
             Warn '  bcdedit /set "{GUID}" hypervisorlaunchtype off'
