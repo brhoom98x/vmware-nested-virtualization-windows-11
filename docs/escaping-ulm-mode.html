@@ -481,13 +481,45 @@ Restart-Computer</pre></div>
 
 <section>
   <h2><span class="num">06</span> When something else genuinely needs the hypervisor</h2>
-  <p>Disabling the hypervisor globally breaks WSL2, Docker Desktop's WSL2 and Hyper-V backends, Windows Sandbox, and any QEMU-backed app that accelerates through WHP. If the machine uses any of them, add a second boot entry instead of flipping the setting back and forth.</p>
-  <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies boot config</span></div><pre><span class="c"># copy the current entry; this prints a GUID</span>
-bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"
+  <p>Disabling the hypervisor globally breaks WSL2, Docker Desktop's WSL2 and Hyper-V backends, Windows Sandbox, and any QEMU-backed app that accelerates through WHP. If the machine uses any of them, add a second boot entry with the hypervisor off and leave the default alone. Nested virtualization then becomes a choice you make per boot.</p>
 
-<span class="c"># apply the setting to THAT entry only, using the GUID printed above</span>
-bcdedit /set "{PASTE-GUID-HERE}" hypervisorlaunchtype off</pre></div>
-  <p>You then pick <em>Windows 11 (No Hyper-V)</em> at boot for nested virtualization work, and the normal entry for containers and QEMU guests.</p>
+  <div class="phase">
+    <div class="marker"><b>a</b></div>
+    <div class="content">
+      <h3>Create the entry, and make sure it can be picked</h3>
+      <p>The copy prints a GUID. Substitute it wherever <code>{GUID}</code> appears below, here and in step b.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">modifies boot config</span></div><pre>bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"
+
+<span class="c"># the hypervisor setting, on THAT entry only</span>
+bcdedit /set "{GUID}" hypervisorlaunchtype off
+
+<span class="c"># put it in the boot menu, and make the menu actually appear</span>
+bcdedit /displayorder "{GUID}" /addlast
+bcdedit /timeout 10</pre></div>
+      <div class="callout stop">
+        <div class="label">The trap — an entry nobody can pick</div>
+        <p>Most guides stop after the first two lines. On the reference machine that produced an entry that existed but was never offered: <code>bcdedit /copy</code> did not add it to the boot menu's display order, and with no <code>timeout</code> set Windows showed no menu at all. The machine booted the default, the hypervisor loaded, and VMware logged <code>Monitor Mode: ULM</code> again &mdash; indistinguishable from a fix that did not work. It happened twice before the cause was clear.</p>
+        <p>The tell: if <code>LastBootUpTime</code> changed but <code>HypervisorPresent</code> is still <code>True</code>, you booted the default entry. The last two lines above close that gap.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="marker"><b>b</b></div>
+    <div class="content">
+      <h3>Arm the next boot, then restart</h3>
+      <p>Even with a menu, catching it in ten seconds is easy to miss. <code>/bootsequence</code> skips the menu entirely: the next boot uses the named entry automatically, then the override clears itself.</p>
+      <div class="console"><div class="bar"><span>PowerShell (Admin)</span><span class="right">one-shot, clears itself</span></div><pre>bcdedit /bootsequence "{GUID}"
+Restart-Computer</pre></div>
+      <p>Because it is one-shot, your default stays the normal entry with the hypervisor running. Every ordinary boot keeps WSL2, Docker and QEMU apps working. To get nested virtualization again, pick the entry at the menu or re-arm before restarting.</p>
+    </div>
+  </div>
+
+  <div class="callout ok">
+    <div class="label">Or do all of it in one go</div>
+    <p><a href="https://github.com/brhoom98x/vmware-nested-virtualization-windows-11/blob/main/scripts/Use-NoHyperVEntry.ps1"><code>Use-NoHyperVEntry.ps1</code></a> in the companion repo does every step above. It creates the entry or repairs an existing one, applies the setting, fixes the display order, sets a timeout and arms the next boot. It is safe to run repeatedly, so it is also the quickest way to re-arm.</p>
+  </div>
+
   <div class="callout warn">
     <div class="label">Why this beats toggling the feature</div>
     <p>An app that enabled WHP for itself will simply enable it again the next time it starts and finds it missing — it never asks. Removing the feature therefore buys one reboot, not a fixed machine. Leaving the feature installed and controlling the <em>boot entry</em> takes the decision back without the app noticing anything is wrong.</p>

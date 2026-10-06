@@ -135,14 +135,26 @@ Turning the hypervisor off globally breaks WSL2, Docker Desktop's WSL2 and Hyper
 
 Don't toggle the feature back and forth. **An app that enabled WHP for itself will simply enable it again the next time it starts and finds it missing — it never asks.** Removing the feature buys you one reboot, not a fixed machine.
 
-Control the *boot entry* instead:
+Control the *boot entry* instead. The simplest way is one script, elevated:
 
 ```powershell
-bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"
-bcdedit /set "{PASTE-GUID-HERE}" hypervisorlaunchtype off
+.\scripts\Use-NoHyperVEntry.ps1
+Restart-Computer
 ```
 
-Pick *Windows 11 (No Hyper-V)* at boot for nested-virtualization work, and the normal entry for containers and QEMU guests. The app never notices anything is wrong.
+It creates a *Windows 11 (No Hyper-V)* entry, or repairs an existing one, and arms the **next boot only** to use it. Your default entry is never touched, so every ordinary boot keeps the hypervisor for WSL2, Docker and QEMU apps. Re-run it whenever you want a nested-virtualization session.
+
+The manual equivalent — note the last three lines, which most guides leave out:
+
+```powershell
+bcdedit /copy "{current}" /d "Windows 11 (No Hyper-V)"    # prints a GUID
+bcdedit /set "{GUID}" hypervisorlaunchtype off
+bcdedit /displayorder "{GUID}" /addlast                    # put it in the boot menu
+bcdedit /timeout 10                                        # make the menu appear
+bcdedit /bootsequence "{GUID}"                             # use it on the next boot only
+```
+
+> **Why the extra lines matter:** `bcdedit /copy` doesn't reliably add the new entry to the boot menu, and with no timeout set Windows shows no menu at all. You end up with an entry that exists but can never be picked. The machine boots the default, the hypervisor loads, and it looks exactly like a fix that didn't work. The tell: `LastBootUpTime` changed but `HypervisorPresent` is still `True`.
 
 ## Gotchas worth knowing
 

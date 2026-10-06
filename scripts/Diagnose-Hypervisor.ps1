@@ -182,31 +182,26 @@ if (-not $hypervisorPresent) {
     if (-not $cpu.VirtualizationFirmwareEnabled) {
         Write-Host '  BUT virtualization is disabled in firmware -- enable SVM (AMD) or VT-x (Intel) in BIOS.' -ForegroundColor Yellow
     }
-}
-elseif ($enabledFeatures -contains 'HypervisorPlatform' -and $enabledFeatures.Count -eq 1) {
+} elseif ($enabledFeatures -contains 'HypervisorPlatform' -and $enabledFeatures.Count -eq 1) {
     Write-Host '  Windows Hypervisor Platform is enabled, and nothing else is.' -ForegroundColor Yellow
     Write-Host '  A QEMU-backed app (Try Omarchy, QEMU, VirtualBox 7, Android Studio) enabled it for itself.'
     Write-Host ''
     Write-Host '  -> Prefer a separate boot entry over removing the feature. The app re-enables' -ForegroundColor Cyan
     Write-Host '     WHP the next time it launches and finds it gone.' -ForegroundColor Cyan
-}
-elseif ($enabledFeatures.Count -gt 0) {
+} elseif ($enabledFeatures.Count -gt 0) {
     Write-Host "  These hypervisor features are enabled: $($enabledFeatures -join ', ')" -ForegroundColor Yellow
     Write-Host '  -> Disable them, then set hypervisorlaunchtype off.' -ForegroundColor Cyan
-}
-elseif ($enabledScenarios -contains 'HypervisorEnforcedCodeIntegrity') {
+} elseif ($enabledScenarios -contains 'HypervisorEnforcedCodeIntegrity') {
     Write-Host '  Memory Integrity (HVCI) is on.' -ForegroundColor Yellow
     Write-Host '  -> Windows Security > Device security > Core isolation > off. Reboot.' -ForegroundColor Cyan
-}
-elseif ($enabledScenarios -contains 'WindowsHello') {
+} elseif ($enabledScenarios -contains 'WindowsHello') {
     Write-Host '  Windows Hello Enhanced Sign-in Security (ESS) is the sole VBS consumer.' -ForegroundColor Yellow
     Write-Host '  This appears in NEITHER the Hyper-V feature list NOR the Core isolation UI.'
     Write-Host ''
     Write-Host '  -> Set Scenarios\WindowsHello\Enabled = 0 and hypervisorlaunchtype off.' -ForegroundColor Cyan
     Write-Host '  !! This destroys the whole Hello enrolment, PIN included. Know your' -ForegroundColor Red
     Write-Host '     account password first, then re-enrol with Reset-WindowsHello.ps1.' -ForegroundColor Red
-}
-else {
+} else {
     Write-Host '  A hypervisor is running but no feature or VBS scenario explains it.' -ForegroundColor Yellow
     Write-Host '  -> The BCD is launching it on its own. hypervisorlaunchtype off is enough.' -ForegroundColor Cyan
 }
