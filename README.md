@@ -1,6 +1,6 @@
-# Escaping ULM Mode
+# VMware Nested Virtualization on Windows 11
 
-**Why VMware Workstation's nested virtualization silently fails on Windows 11 — and how to find the invisible feature holding the hypervisor hostage.**
+**Why ticking *Virtualize Intel VT-x/EPT or AMD-V/RVI* makes VMware Workstation fail with "Failed to start the virtual machine" — and how to find the invisible Windows feature holding the hypervisor hostage.**
 
 You tick *Virtualize Intel VT-x/EPT* or *AMD-V/RVI*, the VM refuses to start, and Workstation gives you this and nothing else:
 
