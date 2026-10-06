@@ -66,6 +66,9 @@
     border:1px solid var(--rule); border-radius:3px; padding:4px 9px;
   }
   .tag b { color:var(--ink); font-weight:600; }
+  a.tag { text-decoration:none; }
+  a.tag:hover b { text-decoration:underline; }
+  footer a { overflow-wrap:anywhere; }
 
   /* ---- sections ---- */
   section { display:flex; flex-direction:column; gap:18px; }
@@ -218,10 +221,11 @@
   <p class="standfirst">Getting VMware Workstation out of user-level monitor mode so nested virtualization actually works — and finding which invisible Windows feature is holding the hypervisor hostage.</p>
   <div class="meta">
     <span class="tag">Verified <b>2026-08-16</b></span>
-    <span class="tag">Updated <b>2026-10-06</b></span>
+    <span class="tag">Updated <b>2026-10-07</b></span>
     <span class="tag">Workstation <b>25.0.0</b></span>
     <span class="tag">Host <b>Win 11 Pro 26200</b></span>
     <span class="tag">Reference box <b>Ryzen 7 5800X</b></span>
+    <a class="tag" href="https://github.com/brhoom98x/vmware-nested-virtualization-windows-11">Scripts <b>on GitHub</b></a>
   </div>
 </header>
 
@@ -556,6 +560,7 @@ Set-ItemProperty `
 <footer>
   <div>Written from the 2026-08-16 fix on the Ryzen 7 5800X desktop, where Windows Hello ESS was the sole VBS consumer and the two-command fix in 05b + 05c resolved it. Updated 2026-10-06 after Try Omarchy 0.9.0 re-enabled the hypervisor through the Windows Hypervisor Platform.</div>
   <div>Diagnose before applying — the commands are the same, but the cause may not be.</div>
+  <div>Scripts that automate the diagnosis and the fix: <a href="https://github.com/brhoom98x/vmware-nested-virtualization-windows-11">github.com/brhoom98x/vmware-nested-virtualization-windows-11</a></div>
 </footer>
 
 </div>
